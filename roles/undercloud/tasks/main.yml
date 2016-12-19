@@ -36,13 +36,13 @@
 
 - name:  Enable latest RDO Delorean repository for all packages for specific version
   get_url: 
-    url: "https://trunk.rdoproject.org/centos7-{{ osp_version }}/current/delorean.repo"
-    dest: "/etc/yum.repos.d/delorean-{{ osp_version }}.repo"
+    url: "https://trunk.rdoproject.org/centos7-{{ openstack_named_version }}/current/delorean.repo"
+    dest: "/etc/yum.repos.d/delorean-{{ openstack_named_version }}.repo"
 
 - name: Enable the Delorean Deps repository
   get_url:
-    url: "http://trunk.rdoproject.org/centos7-{{ osp_version }}/delorean-deps.repo"
-    dest: "/etc/yum.repos.d/delorean-deps-{{ osp_version }}.repo"
+    url: "http://trunk.rdoproject.org/centos7-{{ openstack_named_version }}/delorean-deps.repo"
+    dest: "/etc/yum.repos.d/delorean-deps-{{ openstack_named_version }}.repo"
 
 - name: Install the yum-plugin-priorities package 
   yum: 
@@ -56,7 +56,7 @@
 
 - name: Template undercloud.conf
   template:
-    src: "{{ osp_version }}.undercloud.conf.j2"
+    src: "{{ openstack_named_version }}.undercloud.conf.j2"
     dest: "/home/stack/undercloud.conf"
 
 - name: Install undercloud

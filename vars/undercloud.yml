@@ -1,4 +1,4 @@
-osp_version: "newton"
+openstack_named_version: "newton"
 undercloud_hostname: "undercloud"
 local_interface: "enp1s0f0"             # note this might be a VLAN
 local_ip: "10.0.1.10"
@@ -22,7 +22,7 @@ enable_ui: true
 enable_validations: true
 ipxe_deploy: true
 store_events: false
-tripleo_image_path: http://buildlogs.centos.org/centos/7/cloud/x86_64/tripleo_images/{{ osp_version }}/delorean/
+tripleo_image_path: http://buildlogs.centos.org/centos/7/cloud/x86_64/tripleo_images/{{ openstack_named_version }}/delorean/
 tripleo_images:
   - ironic-python-agent.tar
   - overcloud-full.tar

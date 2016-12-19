@@ -8,8 +8,8 @@
   become: true
   become_user: stack
   environment:
-    DELOREAN_TRUNK_REPO: "http://trunk.rdoproject.org/centos7-{{ osp_version }}/current/"
-    DIB_YUM_REPO_CONF: "/etc/yum.repos.d/delorean-deps-{{ osp_version }}.repo /etc/yum.repos.d/delorean-{{ osp_version }}.repo /etc/yum.repos.d/CentOS-Ceph-Hammer.repo"
+    DELOREAN_TRUNK_REPO: "http://trunk.rdoproject.org/centos7-{{ openstack_named_version }}/current/"
+    DIB_YUM_REPO_CONF: "/etc/yum.repos.d/delorean-deps-{{ openstack_named_version }}.repo /etc/yum.repos.d/delorean-{{ openstack_named_version }}.repo /etc/yum.repos.d/CentOS-Ceph-Hammer.repo"
 
 
 # - name: Start libvirtd
