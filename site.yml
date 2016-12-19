@@ -5,12 +5,13 @@
     - vars/undercloud.yml
     - vars/network.yml
     - vars/undercloud_vlans.yml
-  tasks: []
-  roles:
-    # - { role: undercloud }
-    # - { role: build_images }
-    # - { role: instackenv }
-    # - { role: dns }
-    # - { role: undercloud-vlans }
-    - { role: heat-templates }
-    # - { role: overcloud_deploy }
+  tasks:
+    - command: echo foo
+  # roles:
+  #   # - { role: undercloud }
+  #   # - { role: build_images }
+  #   # - { role: instackenv }
+  #   # - { role: dns }
+  #   # - { role: undercloud-vlans }
+  #   - { role: heat-templates }
+  #   # - { role: overcloud_deploy }
