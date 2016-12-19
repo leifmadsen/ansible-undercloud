@@ -42,9 +42,8 @@
   tasks: []
 
   roles:
+    - { role: undercloud }
     - { role: get_images }
-  #   # - { role: undercloud }
-  #   # - { role: build_images }
   #   # - { role: instackenv }
   #   # - { role: dns }
   #   # - { role: undercloud-vlans }
