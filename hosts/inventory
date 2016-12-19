@@ -1,0 +1,14 @@
+# Create a hosts/local_inventory file with the following format:
+# virt-host ansible_host=192.168.x.x ansible_ssh_user=root ansible_ssh_password=foobar
+
+[virt-host]
+virt-host
+
+# Set variables common for all droctagon hosts
+[undercloud:vars]
+# ansible_ssh_private_key_file=/home/stack/atomic_key.pem
+ansible_become=true
+become_user=root
+
+[undercloud]
+undercloud
