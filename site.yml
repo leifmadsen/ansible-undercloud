@@ -21,7 +21,8 @@
         url: "{{ virt_generic_cloud_image }}"
         dest: "{{ virt_working_directory }}"
       when: not generic_cloud_image.stat.exists
-
+  roles:
+    - { role: virt-host }
     # will need to create vars file for bridge names and IP ranges
 
     # check for bridge network (libvirt)
@@ -31,7 +32,6 @@
     # instantiate the vm with the virt commands
 
     # add virtual machine to inventory (undercloud)
-
 
 - hosts: undercloud
   vars_files:

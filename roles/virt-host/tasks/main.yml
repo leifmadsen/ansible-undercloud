@@ -1,0 +1,112 @@
+---
+# based on: http://giovannitorres.me/create-a-linux-lab-on-kvm-using-cloud-images.html
+- name: Install deps
+  package:
+    name: genisoimage
+    state: present
+  with_items:
+    - genisoimage
+    - virt-install
+
+- name: See if disk exists
+  stat:
+    path: "{{ virt_working_directory }}/disk.{{ virt_image_name }}"
+  register: qcowdisk
+
+- name: Turn qcow image into disk
+  command: >
+    cp {{ virt_working_directory }}/{{ virt_image_name }} {{ virt_working_directory }}/disk.{{ virt_image_name }} 
+  when: not qcowdisk.stat.exists
+
+- name: Template cloud-config
+  template:
+    src: user-data.j2
+    dest: "{{ virt_working_directory }}/user-data"
+  register: template_user_data
+
+- name: Template meta-data
+  template:
+    src: meta-data.j2
+    dest: "{{ virt_working_directory }}/meta-data"
+  register: template_meta_data
+
+- name: Generate joliet ISO
+  command: >
+    genisoimage 
+      -o {{ virt_working_directory }}/user-data.iso 
+      -V cidata 
+      -r -J {{ virt_working_directory }}/user-data {{ virt_working_directory }}/meta-data
+  when: template_user_data.changed or template_meta_data.changed
+
+- name: Check if VM exists.
+  command: >
+    virsh list --all
+  register: vm_list
+
+
+- name: Perform virt install
+  command: >
+    virt-install 
+      --import 
+      --name {{ virt_host_hostname }}
+      --ram {{ virt_host_ram }}
+      --vcpus {{ virt_host_cpus }}
+      --disk {{ virt_working_directory }}/disk.{{ virt_image_name }},format=qcow2,bus=virtio
+      --disk {{ virt_working_directory }}/user-data.iso,device=cdrom
+      --network bridge=virbr0,model=virtio
+      --os-type=linux
+      --os-variant=rhel7
+      --noautoconsole
+  when: "'{{ virt_host_hostname }}' not in vm_list.stdout"
+
+# --network=network:host-network
+
+# [stack@rover ansible-undercloud]$ sudo virsh dumpxml undercloud_newton | grep -A5 -B2 br0
+# [stack@rover ansible-undercloud]$ sudo virsh dumpxml undercloud_newton | grep -B1 br0 | grep address
+# [stack@rover ansible-undercloud]$ sudo virsh dumpxml undercloud_newton | grep -B1 br0 | grep address | cut -d"'" -f2
+# 52:54:00:33:fe:bc
+# 52:54:00:2e:90:8f
+#  [stack@rover ansible-undercloud]$ sudo arp-scan --interface=br0 192.168.3.0/24 | awk '/52:54:00:33:fe:bc/ {print $1}'
+# 192.168.3.145
+# [stack@rover ansible-undercloud]$ sudo virsh net-dumpxml host-bridge                                             
+# <network connections='2'>
+#   <name>host-bridge</name>
+#   <uuid>9b4d0e10-6db4-4870-9730-7fae88202380</uuid>
+#   <forward mode='bridge'/>
+#   <bridge name='br0'/>
+# </network>
+# [stack@rover ansible-undercloud]$ sudo cat /root/bridge.xml
+# <network>
+#         <name>host-bridge</name>
+#         <forward mode="bridge"/>
+#         <bridge name="br0"/>
+# </network>
+
+
+
+## This only works for default natted schtuff.
+- name: Get MAC
+  shell: >
+    virsh dumpxml {{ virt_host_hostname }} | awk -F\' '/mac address/ {print $2}'
+  register: mac_address
+
+- name: Get IP
+  shell: >
+    grep -B1 "{{mac_address.stdout}}" /var/lib/libvirt/dnsmasq/{{ virt_host_bridge_name }}.status | head -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//
+  register: get_ip
+
+# - name: Wait for a second for that mac to register
+#   pause:
+#     seconds: 5
+
+# - debug: "msg={{ get_ip }}"
+
+- name: Here is your IP, unreliably on the first run.
+  debug:
+    msg: "THe IP of the undercloud is: {{ get_ip.stdout }} "
+
+
+
+# genisoimage -output $CI_ISO -volid cidata -joliet -r $USER_DATA $META_DATA &>> $1.log
+
+# Do virt install
