@@ -1,0 +1,4 @@
+---
+virt_generic_cloud_image: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+virt_image_name: "{{ virt_generic_cloud_image.split('/')[-1] }}"
+virt_working_directory: /root/undercloud_working_dir
