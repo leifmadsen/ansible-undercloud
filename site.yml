@@ -29,7 +29,7 @@
     # configure the bridge network (libvirt)
 
     # instantiate the vm with the virt commands
-
+    
     # add virtual machine to inventory (undercloud)
 
 
@@ -39,10 +39,10 @@
     - vars/undercloud.yml
     - vars/network.yml
     - vars/undercloud_vlans.yml
-  tasks:
-    - command: echo foo
+  tasks: []
 
-  # roles:
+  roles:
+    - { role: get_images }
   #   # - { role: undercloud }
   #   # - { role: build_images }
   #   # - { role: instackenv }
