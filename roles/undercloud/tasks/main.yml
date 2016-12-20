@@ -45,12 +45,12 @@
     dest: "/etc/yum.repos.d/delorean-deps-{{ openstack_named_version }}.repo"
 
 - name: Install the yum-plugin-priorities package 
-  yum: 
+  package:
     name: yum-plugin-priorities
     state: present
 
 - name: "Install the TripleO CLI (this pulls other deps, as you would imagine)"
-  yum: 
+  package:
     name: python-tripleoclient
     state: present
 
