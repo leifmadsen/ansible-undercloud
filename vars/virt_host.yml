@@ -3,8 +3,9 @@ virt_generic_cloud_image: http://cloud.centos.org/centos/7/images/CentOS-7-x86_6
 virt_image_name: "{{ virt_generic_cloud_image.split('/')[-1] }}"
 virt_working_directory: /home/doug/Downloads
 virt_host_hostname: foober
-virt_host_fqdn: foobur
+virt_host_fqdn: foober.local
 virt_host_ram: 2048
 virt_host_cpus: 2
-virt_host_bridge_name: virbr0
+virt_host_bridge_name: hostbridge
+virt_host_bridge_devicename: br0
 undercloud_pub_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCj7K+U5FX9fSb0QeAbUH72SBKQUMBQgoZGbG/TPg9IVMjc1iMso61a6KPaF70RkPRBq3wUuOlQK70zjKyqK/H9dFe4YfPQQo2PcVKTphtx6MRu0ADuUkcFYVCkl8nqUF2slC4CVy8Gqo4ev6yXfs8U2hafUaItugAT6lG4ApSGN1LglbxsP3Qm339hv+CepEtrFKvktJePUEdAglTl3tDLynCSdGhYVmdMPGY1Oc6kdkQMkygyCH6+3eB662v2Qs9gAUHCVdsQ6IjOc8gW/2QG+02OBlHf1i3QjridyU7vDvQbkeL+mxllkbnnGVy8/9tl7jWneJ2zi0YJkge9IhDv doug@yoda"

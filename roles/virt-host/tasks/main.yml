@@ -1,5 +1,8 @@
 ---
-# based on: http://giovannitorres.me/create-a-linux-lab-on-kvm-using-cloud-images.html
+# -------------------------------------------------------
+# -- Configures a virt-host and spins up undercloud VM --
+# -------------------------------------------------------
+# some pieces borrowed from: http://giovannitorres.me/create-a-linux-lab-on-kvm-using-cloud-images.html
 - name: Install deps
   package:
     name: genisoimage
@@ -18,6 +21,9 @@
     cp {{ virt_working_directory }}/{{ virt_image_name }} {{ virt_working_directory }}/disk.{{ virt_image_name }} 
   when: not qcowdisk.stat.exists
 
+# !TODO: Add virt-resize
+# http://libguestfs.org/virt-resize.1.html
+
 - name: Template cloud-config
   template:
     src: user-data.j2
@@ -30,7 +36,7 @@
     dest: "{{ virt_working_directory }}/meta-data"
   register: template_meta_data
 
-- name: Generate joliet ISO
+- name: Generate joliet ISO of user-data
   command: >
     genisoimage 
       -o {{ virt_working_directory }}/user-data.iso 
@@ -38,11 +44,46 @@
       -r -J {{ virt_working_directory }}/user-data {{ virt_working_directory }}/meta-data
   when: template_user_data.changed or template_meta_data.changed
 
+# ---------------------------------------------------------------------
+# - !TODO: Automate bridge creation?
+# - @dougbtv: I put notes in the readme.
+# ---------------------------------------------------------------------
+
+# - name: Check for bridge
+#   shell: >
+#     nmcli con show | grep -P "^{{ virt_host_bridge_devicename }}\s"
+#   register: bridges_shown
+#   ignore_errors: true
+
+# - debug: "msg={{ bridges_shown }}"
+
+# - name: nmcli add bridge
+#   shell: >
+#     nmcli con add type bridge ifname {{ virt_host_bridge_devicename }}
+#   when: "bridges_shown.rc"
+
+# end automate bridge creation ---------------------------------------
+
+- name: Force remove libvirt network
+  virt_net:
+    name: "{{ virt_host_bridge_name }}"
+    state: absent
+
+- name: Create libvirt network
+  virt_net:
+    name: "{{ virt_host_bridge_name }}"
+    command: define
+    xml: '{{ lookup("template", "templates/bridge.xml.j2") }}'
+
+- name: Activate libvirt network
+  virt_net:
+    name: "{{ virt_host_bridge_name }}"
+    state: active
+
 - name: Check if VM exists.
   command: >
     virsh list --all
   register: vm_list
-
 
 - name: Perform virt install
   command: >
@@ -53,46 +94,20 @@
       --vcpus {{ virt_host_cpus }}
       --disk {{ virt_working_directory }}/disk.{{ virt_image_name }},format=qcow2,bus=virtio
       --disk {{ virt_working_directory }}/user-data.iso,device=cdrom
-      --network bridge=virbr0,model=virtio
+      --network network:{{ virt_host_bridge_name }},model=virtio
       --os-type=linux
       --os-variant=rhel7
       --noautoconsole
   when: "'{{ virt_host_hostname }}' not in vm_list.stdout"
 
-# --network=network:host-network
-
-# [stack@rover ansible-undercloud]$ sudo virsh dumpxml undercloud_newton | grep -A5 -B2 br0
-# [stack@rover ansible-undercloud]$ sudo virsh dumpxml undercloud_newton | grep -B1 br0 | grep address
-# [stack@rover ansible-undercloud]$ sudo virsh dumpxml undercloud_newton | grep -B1 br0 | grep address | cut -d"'" -f2
-# 52:54:00:33:fe:bc
-# 52:54:00:2e:90:8f
-#  [stack@rover ansible-undercloud]$ sudo arp-scan --interface=br0 192.168.3.0/24 | awk '/52:54:00:33:fe:bc/ {print $1}'
-# 192.168.3.145
-# [stack@rover ansible-undercloud]$ sudo virsh net-dumpxml host-bridge                                             
-# <network connections='2'>
-#   <name>host-bridge</name>
-#   <uuid>9b4d0e10-6db4-4870-9730-7fae88202380</uuid>
-#   <forward mode='bridge'/>
-#   <bridge name='br0'/>
-# </network>
-# [stack@rover ansible-undercloud]$ sudo cat /root/bridge.xml
-# <network>
-#         <name>host-bridge</name>
-#         <forward mode="bridge"/>
-#         <bridge name="br0"/>
-# </network>
-
-
-
-## This only works for default natted schtuff.
-- name: Get MAC
+- name: Get MAC (of first interface only)
   shell: >
-    virsh dumpxml {{ virt_host_hostname }} | awk -F\' '/mac address/ {print $2}'
+    virsh dumpxml {{ virt_host_hostname }} | grep -B1 br0 | grep address | cut -d"'" -f2 | head -n1
   register: mac_address
 
-- name: Get IP
+- name: Get IP (of first interface)
   shell: >
-    grep -B1 "{{mac_address.stdout}}" /var/lib/libvirt/dnsmasq/{{ virt_host_bridge_name }}.status | head -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//
+    arp-scan --interface=br0 {{ network_cidr }}/{{ network_cidr_netmask }} | awk '/{{mac_address.stdout}}/ {print $1}'
   register: get_ip
 
 # - name: Wait for a second for that mac to register
@@ -103,7 +118,7 @@
 
 - name: Here is your IP, unreliably on the first run.
   debug:
-    msg: "THe IP of the undercloud is: {{ get_ip.stdout }} "
+    msg: "To SSH to the undercloud (on the first NIC found): ssh -i ~/.ssh/some_key centos@{{ get_ip.stdout }}"
 
 
 

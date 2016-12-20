@@ -2,6 +2,7 @@
 - hosts: virt-host
   vars_files:
     - vars/virt_host.yml
+    - vars/network.yml
 
   tasks:
     # create a working directory
