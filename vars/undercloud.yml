@@ -1,9 +1,29 @@
-osp_version: "mitaka"
-undercloud_hostname: "undercloud.droctagon.dougbtv.com"
-pxe_nic: "enp1s0f0"
-pxe_ip: "10.0.1.10"
-pxe_cidr_prefix: "10.0.1.0"
-pxe_dhcp_start: "10.0.1.20"
-pxe_dhcp_end: "10.0.1.50"
-pxe_inspection_iprange_start: "10.0.1.60"
-pxe_inspection_iprange_end: "10.0.1.90"
+openstack_named_version: "newton"
+undercloud_hostname: "undercloud"
+local_interface: "enp1s0f0"             # note this might be a VLAN
+local_ip: "10.0.1.10"
+local_ip_netmask: "24"
+network_gateway: "{{ local_ip }}"
+network_cidr: "10.0.1.0"
+network_cidr_netmask: "24"
+dhcp_start: "10.0.1.20"
+dhcp_end: "10.0.1.50"
+inspection_iprange_start: "10.0.1.60"
+inspection_iprange_end: "10.0.1.90"
+inspection_extras: true
+inspection_runbench: false
+inspection_enable_uefi: true
+undercloud_debug: false
+enable_tempest: true
+enable_mistral: true
+enable_zaqar: true
+enable_telemetry: false
+enable_ui: true
+enable_validations: true
+ipxe_deploy: true
+store_events: false
+tripleo_image_path: http://buildlogs.centos.org/centos/7/cloud/x86_64/tripleo_images/{{ openstack_named_version }}/delorean/
+tripleo_images:
+  - ironic-python-agent.tar
+  - overcloud-full.tar
+  - undercloud.qcow2

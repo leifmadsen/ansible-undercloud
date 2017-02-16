@@ -1,11 +1,29 @@
 ---
-
 # http://buildlogs.centos.org/centos/7/cloud/x86_64/tripleo_images/mitaka/delorean/
 # http://buildlogs.centos.org/centos/7/cloud/x86_64/tripleo_images/liberty/delorean/
 
 # - name: Ensure file for images exists
 
-- name:  Enable latest RDO Delorean repository for all packages for specific version
-  get_url: 
-    url: "https://trunk.rdoproject.org/centos7-{{ osp_version }}/current/delorean.repo"
-    dest: "/etc/yum.repos.d/delorean-{{ osp_version }}.repo"
+- name: Validate images directory exists
+  become: yes
+  become_user: stack
+  file:
+    path: /home/stack/images
+    state: directory
+
+- name: Check if images exist
+  become: yes
+  become_user: stack
+  stat:
+    path: /home/stack/images/{{ item }}
+  with_items: "{{ tripleo_images }}"
+  register: image_files
+
+- name: Get the images
+  become: yes
+  become_user: stack
+  get_url:
+    url: "{{ tripleo_image_path}}/{{ item.item }}"
+    dest: "{{ item.invocation.module_args.path }}"
+  with_items: "{{ image_files.results }}"
+  when: not item.stat.exists

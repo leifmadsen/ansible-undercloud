@@ -2,10 +2,32 @@
 - hosts: virt-host
   vars_files:
     - vars/virt_host.yml
+
     - vars/network.yml
   tasks: []
   roles:
     - { role: virt-host }
+    - ~/.ansible/vars/stack.yml
+
+  tasks:
+    # create a working directory
+    - name: Create the working directory
+      file:
+        path: "{{ virt_working_directory }}"
+        state: directory
+
+    - name: Check if CentOS generic image exists
+      stat:
+        path: "{{ virt_working_directory }}/{{ virt_image_name }}"
+      register: generic_cloud_image
+
+    # download the generic cloud image if it doesn't exist
+    - name: Download the generic cloud image
+      get_url:
+        url: "{{ virt_generic_cloud_image }}"
+        dest: "{{ virt_working_directory }}"
+      when: not generic_cloud_image.stat.exists
+
     # will need to create vars file for bridge names and IP ranges
 
     # check for bridge network (libvirt)
@@ -13,7 +35,7 @@
     # configure the bridge network (libvirt)
 
     # instantiate the vm with the virt commands
-
+    
     # add virtual machine to inventory (undercloud)
 
 - hosts: undercloud
@@ -22,12 +44,12 @@
     - vars/undercloud.yml
     - vars/network.yml
     - vars/undercloud_vlans.yml
-  tasks:
-    - command: echo foo
+    - ~/.ansible/vars/stack.yml
+  tasks: []
 
-  # roles:
-  #   # - { role: undercloud }
-  #   # - { role: build_images }
+  roles:
+    - { role: undercloud }
+    - { role: get_images }
   #   # - { role: instackenv }
   #   # - { role: dns }
   #   # - { role: undercloud-vlans }
